@@ -1,8 +1,14 @@
 '''
 tablero.py: Dibuja el tablero del juego del gato
 '''
-
 import random
+import sys
+
+def obtener_nombre():
+    '''Obtiene el nombre del jugador desde los argumentos de la terminal'''
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    return "Usuario"
 
 def dibuja_tablero(simbolos:dict):
     '''
@@ -17,17 +23,39 @@ def dibuja_tablero(simbolos:dict):
     {simbolos['7']} | {simbolos['8']} | {simbolos['9']}
     ''')
 
-def ia(simbolos:dict):
-    '''
-    Juega la máquina
-    '''
-    ocupado = True
-    while ocupado == True:
-        x = random.choice(list(simbolos.keys()))
-        if simbolos[x]  not in ['X','O']:
-            simbolos[x]='O'
-            ocupado = False
 
+def ia(simbolos: dict):
+    '''
+    IA mejorada para tratar de ganar o bloquear al jugador
+    '''
+    lista_combinaciones = [
+        ['1','2','3'], ['4','5','6'], ['7','8','9'],
+        ['1','4','7'], ['2','5','8'], ['3','6','9'],
+        ['1','5','9'], ['3','5','7']
+    ]
+    
+    # 1. Verificar si la IA puede ganar en el siguiente movimiento
+    for combo in lista_combinaciones:
+        valores = [simbolos[c] for c in combo]
+        if valores.count('O') == 2 and valores.count('X') == 0:
+            for c in combo:
+                if simbolos[c] not in ['X', 'O']:
+                    simbolos[c] = 'O'
+                    return
+    
+    # 2. Bloquear al jugador si está a punto de ganar
+    for combo in lista_combinaciones:
+        valores = [simbolos[c] for c in combo]
+        if valores.count('X') == 2 and valores.count('O') == 0:
+            for c in combo:
+                if simbolos[c] not in ['X', 'O']:
+                    simbolos[c] = 'O'
+                    return
+    
+    # 3. Si no hay jugadas críticas, hacer un movimiento aleatorio
+    opciones = [c for c in simbolos if simbolos[c] not in ['X', 'O']]
+    if opciones:
+        simbolos[random.choice(opciones)] = 'O'
 
 def usuario(simbolos:dict):
     '''
@@ -97,6 +125,38 @@ def checa_winner(simbolos:dict,combinaciones:list):
             return simbolos[c[0]]
     return None
 
+def actualiza_score(score:dict,ganador:str, nombre:str):
+    '''Actualiza el score'''
+    X = score["X"]
+    O = score["O"]
+    if ganador is not None:
+        print(f'El ganador es {ganador}')
+        if ganador == 'X':
+            X["G"] += 1
+            O["P"] += 1
+        elif ganador == 'O':
+            O["G"] += 1
+            X["P"] += 1
+        else:
+            X["E"] += 1
+            O["E"] += 1
+    else:
+        print('Empate')
+        X["E"] += 1
+        O["E"] += 1
+
+def despliega_tablero(score: dict, nombre: str):
+    '''Despliega el tablero de score con mejor formato'''
+    ancho = max(len(nombre), len("Computadora"))  # Calcula el ancho máximo para alinear
+    nombre_formateado = nombre.ljust(ancho)  # Ajusta el ancho con espacios
+    computadora_formateada = "Computadora".ljust(ancho)
+
+    print(f'''
+    {nombre_formateado} X | G: {score["X"]["G"]} | P: {score["X"]["P"]} | E: {score["X"]["E"]}
+    {computadora_formateada} O | G: {score["O"]["G"]} | P: {score["O"]["P"]} | E: {score["O"]["E"]}
+''')
+
+
 if __name__ == '__main__':
     numeros = [str(i) for i in range(1,10)]
     dsimbolos = {x:x for x in numeros}
@@ -105,19 +165,4 @@ if __name__ == '__main__':
         print(f'El ganador es: {g}')
     else:
         print('Empate')
-    '''
-    dibuja_tablero(dsimbolos)
-    ia(dsimbolos)
-    dibuja_tablero(dsimbolos)
-    usuario(dsimbolos)
-    dibuja_tablero(dsimbolos)
-    x = random.choice(numeros)
-    numeros.remove(x)
-    dsimbolos[x] = 'X'
-    dibuja_tablero(dsimbolos)
-    o = random.choice(numeros)
-    numeros.remove(o)
-    dsimbolos[o] = 'O'
-    dibuja_tablero(dsimbolos)
-    print(numeros)
-    '''
+    
