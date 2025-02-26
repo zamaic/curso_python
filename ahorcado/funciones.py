@@ -7,7 +7,7 @@ from random import choice
  
 def carga_archivo_texto(archivo:str)->list:
     '''
-    Carga un archivo de texto y devuelve una lista ocn las palabras del archivo
+    Carga un archivo de texto y devuelve una lista con las palabras del archivo
     '''
     with open(archivo,'r', encoding='utf-8') as file:
         oraciones=file.readlines()
